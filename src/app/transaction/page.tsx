@@ -3,6 +3,7 @@ import TransactionWrapper from "src/components/TransactionWrapper";
 import WalletWrapper from "src/components/WalletWrapper";
 import {
   useAccount,
+  useSwitchChain,
   useWriteContract,
   useWaitForTransactionReceipt,
 } from "wagmi";
@@ -14,6 +15,8 @@ export default function Transaction() {
   const { address } = useAccount();
   const { writeContractAsync } = useWriteContract();
   const [hashTrx, setHashTrx] = useState("");
+  const { switchChain } = useSwitchChain();
+
   const [amount, setAmount] = useState(0);
   enum StatesTrx {
     NO,
@@ -54,24 +57,45 @@ export default function Transaction() {
     }
   }, [result, stateTrx]);
 
+  useEffect(() => {
+    try {
+      console.log("Cambiando");
+      switchChain({ chainId: 84532 });
+    } catch (error: Error | any) {
+      console.error("Error in request", error);
+    }
+  }, []);
+
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
     console.log({ address });
     const formData = new FormData(event.currentTarget);
     const numberAcount = formData.get("number_acount");
     const price = formData.get("price");
     setAmount(Number(price) ?? 0);
     console.log({ numberAcount, price });
-    const hashApprove = await writeContractAsync({
-      abi: contract.abiUSDC,
-      address: contract.addressUSDC as `0x${string}`,
-      functionName: "approve",
-      args: [contract.addressBuckspay as `0x${string}`, price],
-    });
-    console.log({ hashApprove });
-    setStateTrx(StatesTrx.APPROVING);
-    setHashTrx(hashApprove);
-    // Handle response if necessary
+    try {
+      const hashApprove = await writeContractAsync({
+        abi: contract.abiUSDC,
+        address: contract.addressUSDC as `0x${string}`,
+        functionName: "approve",
+        args: [contract.addressBuckspay as `0x${string}`, price],
+        chainId: 84532,
+      });
+      console.log({ hashApprove });
+      setStateTrx(StatesTrx.APPROVING);
+      setHashTrx(hashApprove);
+    } catch (ex: any) {
+      if (
+        ex.message.includes("The current chain of the wallet") &&
+        ex.message.includes(
+          "does not match the target chain for the transaction"
+        )
+      ) {
+        switchChain({ chainId: 84532 });
+      }
+    }
   };
 
   const faucet = async () => {
