@@ -4,6 +4,7 @@ import WalletWrapper from "src/components/WalletWrapper";
 import { useAccount } from "wagmi";
 import LoginButton from "../components/LoginButton";
 import SignupButton from "../components/SignupButton";
+import Link from "next/link";
 
 export default function Page() {
   const { address } = useAccount();
@@ -22,12 +23,16 @@ export default function Page() {
       <section className="templateSection flex w-full flex-col items-center justify-center gap-4 rounded-xl bg-gray-100 px-2 py-4 md:grow">
         <div>Pagos fácil sin gas</div>
         {address ? (
-          <TransactionWrapper
-            receiver={address}
-            uri={
-              "https://azure-melodic-moose-223.mypinata.cloud/ipfs/bafkreig52naup6yn32la7tnlvhvje5bq22g77iseskzp6smgqurqwqxi7m"
-            }
-          />
+          <Link
+            style={{
+              backgroundColor: "#8c8cf8",
+              borderRadius: "10px",
+              padding: "1rem",
+            }}
+            href="/transaction"
+          >
+            Ir a Comprar como local
+          </Link>
         ) : (
           <WalletWrapper
             className="w-[450px] max-w-full"
